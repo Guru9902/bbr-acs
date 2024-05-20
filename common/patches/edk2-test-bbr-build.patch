@@ -1,11 +1,22 @@
+From e65fa32fe96955ef62151d7a421f7f9bc6ccdf97 Mon Sep 17 00:00:00 2001
+From: Guru9902 <gururaj.revankar@arm.com>
+Date: Mon, 20 May 2024 11:27:09 +0000
+Subject: [PATCH 2/2] edk2-test-bbr-build
+
+---
+ uefi-sct/SctPkg/CommonGenFramework.sh         | 189 ++++++++++++++++++
+ uefi-sct/SctPkg/Config/Data/Category.ini      |  68 +++++--
+ .../SctPkg/Library/SctGuidLib/SctGuidLib.inf  |   1 +
+ 3 files changed, 238 insertions(+), 20 deletions(-)
+
 diff --git a/uefi-sct/SctPkg/CommonGenFramework.sh b/uefi-sct/SctPkg/CommonGenFramework.sh
-index fb9043b5..16634636 100755
+index 089faac7..13fa1914 100755
 --- a/uefi-sct/SctPkg/CommonGenFramework.sh
 +++ b/uefi-sct/SctPkg/CommonGenFramework.sh
-@@ -342,4 +342,191 @@ then
-   CopyDependency Ebc
+@@ -345,3 +345,192 @@ then
    CopyDependency PxeBaseCode
  fi
+ 
 +# *********************************************
 +# For BBR v1.0 SCT
 +# *********************************************
@@ -44,7 +55,7 @@ index fb9043b5..16634636 100755
 +    cp $ProcessorType/VariableServicesBBTest.efi               $Framework/Test/ > NUL
 +    cp $ProcessorType/TimeServicesBBTest.efi                   $Framework/Test/ > NUL
 +    cp $ProcessorType/MiscRuntimeServicesBBTest.efi            $Framework/Test/ > NUL
- 
++
 +    cp $ProcessorType/BisBBTest.efi                            $Framework/Test/ > NUL
 +    cp $ProcessorType/BlockIoBBTest.efi                        $Framework/Test/ > NUL
 +    cp $ProcessorType/BlockIo2BBTest.efi                       $Framework/Test/ > NUL
@@ -194,9 +205,9 @@ index fb9043b5..16634636 100755
 +    CopyDependency PxeBaseCode
 +    CopyDependency ConfigKeywordHandler 
 +fi
-\ No newline at end of file
++
 diff --git a/uefi-sct/SctPkg/Config/Data/Category.ini b/uefi-sct/SctPkg/Config/Data/Category.ini
-index b34d35db..ac4f6013 100644
+index 16f9d637..a62deb74 100644
 --- a/uefi-sct/SctPkg/Config/Data/Category.ini
 +++ b/uefi-sct/SctPkg/Config/Data/Category.ini
 @@ -88,6 +88,27 @@ InterfaceGuid = 71652D04-BF38-434A-BCB8-6547D7FD8384
@@ -241,7 +252,28 @@ index b34d35db..ac4f6013 100644
  [Category Data]
  Revision      = 0x00010000
  CategoryGuid  = AFF115FB-387B-4C18-8C41-6AFC7F03BB90
-@@ -1026,9 +1054,9 @@ InterfaceGuid = 8D59D32B-C655-4AE9-9B15-F25904992A43
+@@ -165,13 +193,13 @@ InterfaceGuid = AFF115FB-387B-4C18-8C41-6AFC7F03BB90
+ Name          = RuntimeServicesTest\MiscRuntimeServicesTest
+ Description   =
+ 
+-[Category Data]
+-Revision      = 0x00010000
+-CategoryGuid  = 265E661D-D51E-454B-BBC9-665F46EC0A04
+-InterfaceGuid = AFF115FB-387B-4C18-8C41-6AFC7F03BB90
+-Name          = RuntimeServicesTest\TCGMemoryOverwriteRequestTest
+-Description   = Test TCG Platform Reset Attack Mitigation EFI variables
+-
++[Category Data]
++Revision      = 0x00010000
++CategoryGuid  = 265E661D-D51E-454B-BBC9-665F46EC0A04
++InterfaceGuid = AFF115FB-387B-4C18-8C41-6AFC7F03BB90
++Name          = RuntimeServicesTest\TCGMemoryOverwriteRequestTest
++Description   = Test TCG Platform Reset Attack Mitigation EFI variables
++
+ [Category Data]
+ Revision      = 0x00010000
+ CategoryGuid  = 5B1B31A1-9562-11D2-8E3F-00A0C969723B
+@@ -1033,16 +1061,16 @@ InterfaceGuid = 8D59D32B-C655-4AE9-9B15-F25904992A43
  Name          = IHV\ConsoleSupportTest\AbsolutePointerProtocolTest
  Description   = Absolute Pointer Protocol Test on IHV Drivers
  
@@ -251,12 +283,26 @@ index b34d35db..ac4f6013 100644
 -InterfaceGuid = CCD15FEC-6F73-4EEC-8395-3E69E4B940BF
 -Name          = RiscvBootProtocolTest
 -Description   = RISC-V Boot Protocol Test
+-
+-[Category Data]
+-Revision      = 0x00010000
+-CategoryGuid  = 607f766c-7455-42be-930b-e4d76db2720f
+-InterfaceGuid = 607f766c-7455-42be-930b-e4d76db2720f
+-Name          = TCG2ProtocolTest
+-Description   = TCG2 Protocol Test
 +[Category Data]
 +Revision      = 0x00010000
 +CategoryGuid  = CCD15FEC-6F73-4EEC-8395-3E69E4B940BF
 +InterfaceGuid = CCD15FEC-6F73-4EEC-8395-3E69E4B940BF
 +Name          = RiscvBootProtocolTest
 +Description   = RISC-V Boot Protocol Test
++
++[Category Data]
++Revision      = 0x00010000
++CategoryGuid  = 607f766c-7455-42be-930b-e4d76db2720f
++InterfaceGuid = 607f766c-7455-42be-930b-e4d76db2720f
++Name          = TCG2ProtocolTest
++Description   = TCG2 Protocol Test
 diff --git a/uefi-sct/SctPkg/Library/SctGuidLib/SctGuidLib.inf b/uefi-sct/SctPkg/Library/SctGuidLib/SctGuidLib.inf
 index 8f918b26..2bbd22c6 100644
 --- a/uefi-sct/SctPkg/Library/SctGuidLib/SctGuidLib.inf
@@ -269,3 +315,6 @@ index 8f918b26..2bbd22c6 100644
  
  [sources.common]
    SctGuidLib.c
+-- 
+2.34.1
+

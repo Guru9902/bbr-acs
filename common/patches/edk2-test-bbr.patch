@@ -1,23 +1,22 @@
-From 8d24275aab1743c92ec97e1c28b9a17dcf2fe8d3 Mon Sep 17 00:00:00 2001
-From: Amrathesh <amrathesh@arm.com>
-Date: Mon, 25 Mar 2024 11:28:29 +0530
-Subject: [PATCH] edk2-test-bbr.patch
+From 25c828e5a28f07f51f5d56f9c610f54e83dd1ffa Mon Sep 17 00:00:00 2001
+From: Guru9902 <gururaj.revankar@arm.com>
+Date: Mon, 20 May 2024 11:19:18 +0000
+Subject: [PATCH] edk2-test-bbr
 
- - changes to sct tests in edk2-test
 ---
- .../BlackBoxTest/ImageBBTestConformance.c     | 149 +++++-------------
+ .../BlackBoxTest/ImageBBTestConformance.c     | 147 +++++-------------
  .../BlackBoxTest/ImageBBTestFunction.c        |   4 +-
  .../ImageServices/BlackBoxTest/Misc.h         |   1 +
- ...emoryAllocationServicesBBTestConformance.c |  80 +---------
- .../MemoryAllocationServicesBBTestFunction.c  | 115 --------------
- .../MemoryAllocationServicesBBTestMain.c      |  19 ---
+ ...emoryAllocationServicesBBTestConformance.c |  81 +---------
+ .../MemoryAllocationServicesBBTestFunction.c  | 121 +-------------
+ .../MemoryAllocationServicesBBTestMain.c      |  18 ---
  .../Dependency/Config/EfiCompliant.ini        |  60 +++----
  .../AuthVariableServicesBBTestConformance.c   |   2 +-
- .../SCT/Drivers/StandardTest/StandardTest.c   |   5 +-
- 9 files changed, 81 insertions(+), 354 deletions(-)
+ .../SCT/Drivers/StandardTest/StandardTest.c   |  21 +--
+ 9 files changed, 92 insertions(+), 363 deletions(-)
 
 diff --git a/uefi-sct/SctPkg/TestCase/UEFI/EFI/BootServices/ImageServices/BlackBoxTest/ImageBBTestConformance.c b/uefi-sct/SctPkg/TestCase/UEFI/EFI/BootServices/ImageServices/BlackBoxTest/ImageBBTestConformance.c
-index 90081f04..b902c6d9 100644
+index 90081f04..8114b4a5 100644
 --- a/uefi-sct/SctPkg/TestCase/UEFI/EFI/BootServices/ImageServices/BlackBoxTest/ImageBBTestConformance.c
 +++ b/uefi-sct/SctPkg/TestCase/UEFI/EFI/BootServices/ImageServices/BlackBoxTest/ImageBBTestConformance.c
 @@ -32,6 +32,7 @@ Abstract:
@@ -36,7 +35,7 @@ index 90081f04..b902c6d9 100644
  
    //
    // Init
-@@ -837,102 +839,13 @@ BBTestExitBootServicesConsistencyTest (
+@@ -837,99 +839,11 @@ BBTestExitBootServicesConsistencyTest (
      return Status;
    }
  
@@ -139,11 +138,8 @@ index 90081f04..b902c6d9 100644
 +      goto CheckResult;
    }
  
--
-   //
-   // Checkpoint 1:
-   // 3.5.2.1  ExitBootServices should not succeed with an invalid MapKey
-@@ -959,15 +872,18 @@ BBTestExitBootServicesConsistencyTest (
+ 
+@@ -959,15 +873,18 @@ BBTestExitBootServicesConsistencyTest (
  
    MapKey += MapKey;
  
@@ -167,12 +163,12 @@ index 90081f04..b902c6d9 100644
  
    Status = gtRT->SetVariable (
                       L"ExitBootServicesTestVariable",                                                           // VariableName
-@@ -980,9 +896,35 @@ BBTestExitBootServicesConsistencyTest (
+@@ -980,9 +897,35 @@ BBTestExitBootServicesConsistencyTest (
    //reset system
    gtRT->ResetSystem (EfiResetCold, EFI_SUCCESS, 0, NULL);
  
 -
-+  // get var to get the status
++// get var to get the status
  CheckResult:
  
 +  DataSize = MAX_BUFFER_SIZE;
@@ -204,11 +200,10 @@ index 90081f04..b902c6d9 100644
    if (ReturnStatus == EFI_INVALID_PARAMETER) {
      AssertionType = EFI_TEST_ASSERTION_PASSED;
    } else {
-@@ -1000,14 +942,7 @@ CheckResult:
-                  ReturnStatus,
+@@ -1001,13 +944,7 @@ CheckResult:
                   EFI_INVALID_PARAMETER
                   );
--
+ 
 -  Status = gtRT->SetVariable (
 -                     L"ExitBootServicesTestVariable",                                                           // VariableName
 -                     &gTestVendor1Guid,                                                                         // VendorGuid
@@ -249,7 +244,7 @@ index b5e34c95..9d299215 100644
  typedef struct {
    VOID          *Registration;
 diff --git a/uefi-sct/SctPkg/TestCase/UEFI/EFI/BootServices/MemoryAllocationServices/BlackBoxTest/MemoryAllocationServicesBBTestConformance.c b/uefi-sct/SctPkg/TestCase/UEFI/EFI/BootServices/MemoryAllocationServices/BlackBoxTest/MemoryAllocationServicesBBTestConformance.c
-index 4c2b468a..d15567b5 100644
+index 4c2b468a..4eafee0e 100644
 --- a/uefi-sct/SctPkg/TestCase/UEFI/EFI/BootServices/MemoryAllocationServices/BlackBoxTest/MemoryAllocationServicesBBTestConformance.c
 +++ b/uefi-sct/SctPkg/TestCase/UEFI/EFI/BootServices/MemoryAllocationServices/BlackBoxTest/MemoryAllocationServicesBBTestConformance.c
 @@ -289,7 +289,7 @@ BBTestGetMemoryMapConsistencyTest (
@@ -261,10 +256,14 @@ index 4c2b468a..d15567b5 100644
                   ); 
  
    FreeMemoryMap ();
-@@ -1084,81 +1084,3 @@ BBTestAllocatePoolConsistencyTest (
-   return EFI_SUCCESS;
- }
+@@ -1080,85 +1080,6 @@ BBTestAllocatePoolConsistencyTest (
+     }
+   }
  
+-  FreeMemoryMap ();
+-  return EFI_SUCCESS;
+-}
+-
 -/**
 - *  Entrypoint for gtBS->FreePool () Consistency Test.
 - *  @param This a pointer of EFI_BB_TEST_PROTOCOL.
@@ -340,18 +339,37 @@ index 4c2b468a..d15567b5 100644
 -                 Status
 -                 );
 -
--  FreeMemoryMap ();
--  return EFI_SUCCESS;
--}
-\ No newline at end of file
-diff --git a/uefi-sct/SctPkg/TestCase/UEFI/EFI/BootServices/MemoryAllocationServices/BlackBoxTest/MemoryAllocationServicesBBTestFunction.c b/uefi-sct/SctPkg/TestCase/UEFI/EFI/BootServices/MemoryAllocationServices/BlackBoxTest/MemoryAllocationServicesBBTestFunction.c
-index db9df08f..2defb6e5 100644
---- a/uefi-sct/SctPkg/TestCase/UEFI/EFI/BootServices/MemoryAllocationServices/BlackBoxTest/MemoryAllocationServicesBBTestFunction.c
-+++ b/uefi-sct/SctPkg/TestCase/UEFI/EFI/BootServices/MemoryAllocationServices/BlackBoxTest/MemoryAllocationServicesBBTestFunction.c
-@@ -1836,118 +1836,3 @@ BBTestAllocatePoolInterfaceTest (
    FreeMemoryMap ();
    return EFI_SUCCESS;
  }
+\ No newline at end of file
+diff --git a/uefi-sct/SctPkg/TestCase/UEFI/EFI/BootServices/MemoryAllocationServices/BlackBoxTest/MemoryAllocationServicesBBTestFunction.c b/uefi-sct/SctPkg/TestCase/UEFI/EFI/BootServices/MemoryAllocationServices/BlackBoxTest/MemoryAllocationServicesBBTestFunction.c
+index db9df08f..250ad3b8 100644
+--- a/uefi-sct/SctPkg/TestCase/UEFI/EFI/BootServices/MemoryAllocationServices/BlackBoxTest/MemoryAllocationServicesBBTestFunction.c
++++ b/uefi-sct/SctPkg/TestCase/UEFI/EFI/BootServices/MemoryAllocationServices/BlackBoxTest/MemoryAllocationServicesBBTestFunction.c
+@@ -553,7 +553,7 @@ BBTestAllocatePagesInterfaceTest (
+                         gMemoryAllocationServicesBBTestFunctionAssertionGuid021: \
+                         gMemoryAllocationServicesBBTestFunctionAssertionGuid022),
+                        L"BS.AllocatePages - AllocateMaxAddress return Address",
+-                       L"%a:%d:TPL - %d, MemType - %d, PhysicalStart - 0x%lX, NumberOfPages - 0x%lX, Memory - 0x%lX",
++                       L"%a:%d:TPL - %d, MemType - %d, PhysicalStart - 0x%lX, NumberOfPages - 0x%lX, Memory - 0x%lX",
+                        __FILE__,
+                        (UINTN)__LINE__,
+                        TplArray[Index],
+@@ -630,7 +630,7 @@ BBTestAllocatePagesInterfaceTest (
+                         gMemoryAllocationServicesBBTestFunctionAssertionGuid027: \
+                         gMemoryAllocationServicesBBTestFunctionAssertionGuid028),
+                        L"BS.AllocatePages - AllocateMaxAddress return Address2",
+-                       L"%a:%d:TPL - %d, MemType - %d, Memory2 - 0x%lX",
++                       L"%a:%d:TPL - %d, MemType - %d, Memory2 - 0x%lX",
+                        __FILE__,
+                        (UINTN)__LINE__,
+                        TplArray[Index],
+@@ -1835,119 +1835,4 @@ BBTestAllocatePoolInterfaceTest (
+ 
+   FreeMemoryMap ();
+   return EFI_SUCCESS;
+-}
 -
 -/**
 - *  Entrypoint for gtBS->FreePool () Interface Test.
@@ -467,8 +485,10 @@ index db9df08f..2defb6e5 100644
 -  FreeMemoryMap ();
 -  return EFI_SUCCESS;
 -}
++}
+\ No newline at end of file
 diff --git a/uefi-sct/SctPkg/TestCase/UEFI/EFI/BootServices/MemoryAllocationServices/BlackBoxTest/MemoryAllocationServicesBBTestMain.c b/uefi-sct/SctPkg/TestCase/UEFI/EFI/BootServices/MemoryAllocationServices/BlackBoxTest/MemoryAllocationServicesBBTestMain.c
-index 8aa89a93..1c902d82 100644
+index 8aa89a93..6fa51f46 100644
 --- a/uefi-sct/SctPkg/TestCase/UEFI/EFI/BootServices/MemoryAllocationServices/BlackBoxTest/MemoryAllocationServicesBBTestMain.c
 +++ b/uefi-sct/SctPkg/TestCase/UEFI/EFI/BootServices/MemoryAllocationServices/BlackBoxTest/MemoryAllocationServicesBBTestMain.c
 @@ -85,15 +85,6 @@ EFI_BB_TEST_ENTRY_FIELD gBBTestEntryField[] = {
@@ -487,7 +507,7 @@ index 8aa89a93..1c902d82 100644
    {
      MEMORY_ALLOCATION_SERVICES_GETMEMORYMAP_INTERFACE_GUID,
      L"GetMemoryMap_Func",
-@@ -130,16 +121,6 @@ EFI_BB_TEST_ENTRY_FIELD gBBTestEntryField[] = {
+@@ -130,15 +121,6 @@ EFI_BB_TEST_ENTRY_FIELD gBBTestEntryField[] = {
      EFI_TEST_CASE_AUTO,
      BBTestAllocatePoolInterfaceTest
    },
@@ -500,10 +520,9 @@ index 8aa89a93..1c902d82 100644
 -    EFI_TEST_CASE_AUTO,
 -    BBTestFreePoolInterfaceTest
 -  },
--
+ 
  #ifdef EFI_TEST_EXHAUSTIVE
    {
-     MEMORY_ALLOCATION_SERVICES_GETMEMORYMAP_STRESS_TEST_GUID,
 diff --git a/uefi-sct/SctPkg/TestCase/UEFI/EFI/Generic/EfiCompliant/BlackBoxTest/Dependency/Config/EfiCompliant.ini b/uefi-sct/SctPkg/TestCase/UEFI/EFI/Generic/EfiCompliant/BlackBoxTest/Dependency/Config/EfiCompliant.ini
 index 4deaae3b..c5b9460b 100644
 --- a/uefi-sct/SctPkg/TestCase/UEFI/EFI/Generic/EfiCompliant/BlackBoxTest/Dependency/Config/EfiCompliant.ini
@@ -587,10 +606,28 @@ index 03d50066..9aa7fb0c 100644
      } else {
        Result = EFI_TEST_ASSERTION_FAILED;
 diff --git a/uefi-sct/SctPkg/TestInfrastructure/SCT/Drivers/StandardTest/StandardTest.c b/uefi-sct/SctPkg/TestInfrastructure/SCT/Drivers/StandardTest/StandardTest.c
-index 94cae289..cf9d64f8 100644
+index 94cae289..bba51836 100644
 --- a/uefi-sct/SctPkg/TestInfrastructure/SCT/Drivers/StandardTest/StandardTest.c
 +++ b/uefi-sct/SctPkg/TestInfrastructure/SCT/Drivers/StandardTest/StandardTest.c
-@@ -1088,7 +1088,10 @@ Returns:
+@@ -30,8 +30,8 @@ Abstract:
+ #include "StandardTest.h"
+ #include <Library/EntsLib.h>
+ 
+-static EFI_TIME Epoch = { .Year = 1970, .Month = 1, .Day = 1 };
+-
++static EFI_TIME Epoch = { .Year = 1970, .Month = 1, .Day = 1 };
++
+ //
+ // Prototypes
+ //
+@@ -1083,12 +1083,15 @@ Returns:
+     StslWriteLogFile (Private, Buffer);
+ 
+     CurrentTime = &Private->StartTime;
+-    if (tRT->GetTime (CurrentTime, NULL) != EFI_SUCCESS)
+-      *CurrentTime = Epoch;
++    if (tRT->GetTime (CurrentTime, NULL) != EFI_SUCCESS)
++      *CurrentTime = Epoch;
  
    } else {
      StslWriteLogFile (Private, DashLine);
@@ -602,6 +639,28 @@ index 94cae289..cf9d64f8 100644
      SctSPrint (Buffer, EFI_MAX_PRINT_BUFFER, L"%s\n", Private->EntryName);
      StslWriteLogFile (Private, Buffer);
      SctSPrint (Buffer, EFI_MAX_PRINT_BUFFER, L"Revision 0x%08x\n", Private->TestRevision);
+@@ -1121,8 +1124,8 @@ Returns:
+ 
+     StslWriteLogFileName (Private);
+     CurrentTime = &Private->StartTime;
+-    if (tRT->GetTime (CurrentTime, NULL) != EFI_SUCCESS)
+-      *CurrentTime = Epoch;
++    if (tRT->GetTime (CurrentTime, NULL) != EFI_SUCCESS)
++      *CurrentTime = Epoch;
+     SctSPrint (Buffer, EFI_MAX_PRINT_BUFFER, L"Test Started: %t\n", CurrentTime);
+     StslWriteLogFile (Private, Buffer);
+ 
+@@ -1242,8 +1245,8 @@ Returns:
+ 
+   StslWriteLogFileName (Private);
+ 
+-  if (tRT->GetTime (&CurrentTime, NULL) != EFI_SUCCESS)
+-    CurrentTime = Epoch;
++  if (tRT->GetTime (&CurrentTime, NULL) != EFI_SUCCESS)
++    CurrentTime = Epoch;
+ 
+   SecondsElapsed = SecondsElapsedFromBaseYear (
+                      Private->StartTime.Year,
 -- 
-2.25.1
+2.34.1
 

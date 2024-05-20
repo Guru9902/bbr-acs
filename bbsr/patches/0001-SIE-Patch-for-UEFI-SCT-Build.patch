@@ -1,5 +1,16 @@
+From d77ada9e5a2d6649690c35c517b0f479965de260 Mon Sep 17 00:00:00 2001
+From: Guru9902 <gururaj.revankar@arm.com>
+Date: Mon, 20 May 2024 12:17:42 +0000
+Subject: [PATCH] SIE-Patch-for-UEFI-SCT-Build
+
+---
+ uefi-sct/SctPkg/CommonGenFramework.sh    | 12 +++++-
+ uefi-sct/SctPkg/Config/Data/Category.ini | 21 ++++++++++
+ uefi-sct/SctPkg/UEFI/UEFI_SCT.dsc        | 53 ++++++++++++++----------
+ 3 files changed, 62 insertions(+), 24 deletions(-)
+
 diff --git a/uefi-sct/SctPkg/CommonGenFramework.sh b/uefi-sct/SctPkg/CommonGenFramework.sh
-index 5e8a3331..a9f05146 100755
+index 13fa1914..7c180db5 100755
 --- a/uefi-sct/SctPkg/CommonGenFramework.sh
 +++ b/uefi-sct/SctPkg/CommonGenFramework.sh
 @@ -92,6 +92,9 @@ CopyDependency()
@@ -20,15 +31,7 @@ index 5e8a3331..a9f05146 100755
      cp $ProcessorType/TimeServicesBBTest.efi                   $Framework/Test/ > NUL
      cp $ProcessorType/MiscRuntimeServicesBBTest.efi            $Framework/Test/ > NUL
  
-@@ -210,6 +214,7 @@ then
-     cp $ProcessorType/DiskIo2BBTest.efi                        $Framework/Test/ > NUL
-     cp $ProcessorType/TimeStampBBTest.efi                      $Framework/Test/ > NUL
-     cp $ProcessorType/RandomNumberBBTest.efi                   $Framework/Test/ > NUL
-+    cp $ProcessorType/TCG2ProtocolBBTest.efi                   $Framework/Test/ > NUL
-     cp $ProcessorType/Hash2BBTest.efi                          $Framework/Test/ > NUL
-     cp $ProcessorType/Pkcs7BBTest.efi                          $Framework/Test/ > NUL
-     cp $ProcessorType/ConfigKeywordHandlerBBTest.efi           $Framework/Test/ > NUL
-@@ -222,6 +227,7 @@ then
+@@ -223,6 +227,7 @@ then
      cp $ProcessorType/PartitionInfoBBTest.efi                  $Framework/Test/ > NUL
      cp $ProcessorType/UFSDeviceConfigBBTest.efi                $Framework/Test/ > NUL
      cp $ProcessorType/ResetNotificationBBTest.efi              $Framework/Test/ > NUL
@@ -36,7 +39,7 @@ index 5e8a3331..a9f05146 100755
      # Only include RiscVBootProtocolBBTest.efi if the file exists (true on RISCV64)
      if [ -e $ProcessorType/RiscVBootProtocolBBTest.efi ]; then
        cp $ProcessorType/RiscVBootProtocolBBTest.efi              $Framework/Test/ > NUL
-@@ -271,6 +277,7 @@ then
+@@ -273,6 +278,7 @@ then
      CopyDependency PciRootBridgeIo
      CopyDependency PxeBaseCode
      CopyDependency ConfigKeywordHandler
@@ -44,7 +47,7 @@ index 5e8a3331..a9f05146 100755
  fi
  
  # *********************************************
-@@ -378,6 +385,7 @@ then
+@@ -381,6 +387,7 @@ then
      cp $ProcessorType/MiscBootServicesBBTest.efi               $Framework/Test/ > NUL
      
      cp $ProcessorType/VariableServicesBBTest.efi               $Framework/Test/ > NUL
@@ -52,7 +55,7 @@ index 5e8a3331..a9f05146 100755
      cp $ProcessorType/TimeServicesBBTest.efi                   $Framework/Test/ > NUL
      cp $ProcessorType/MiscRuntimeServicesBBTest.efi            $Framework/Test/ > NUL
  
-@@ -456,6 +464,7 @@ then
+@@ -459,6 +466,7 @@ then
      cp $ProcessorType/DiskIo2BBTest.efi                        $Framework/Test/ > NUL
      cp $ProcessorType/TimeStampBBTest.efi                      $Framework/Test/ > NUL
      cp $ProcessorType/RandomNumberBBTest.efi                   $Framework/Test/ > NUL
@@ -60,28 +63,25 @@ index 5e8a3331..a9f05146 100755
      cp $ProcessorType/Hash2BBTest.efi                          $Framework/Test/ > NUL
      cp $ProcessorType/Pkcs7BBTest.efi                          $Framework/Test/ > NUL
      cp $ProcessorType/ConfigKeywordHandlerBBTest.efi           $Framework/Test/ > NUL
-@@ -468,7 +477,8 @@ then
-     cp $ProcessorType/PartitionInfoBBTest.efi                  $Framework/Test/ > NUL
+@@ -472,6 +480,7 @@ then
      cp $ProcessorType/UFSDeviceConfigBBTest.efi                $Framework/Test/ > NUL
      cp $ProcessorType/ResetNotificationBBTest.efi              $Framework/Test/ > NUL
--
-+    
+ 
 +    cp $ProcessorType/SecureBootBBTest.efi                     $Framework/Test/ > NUL
      # *********************************************
      # SBBR test cases
      # *********************************************
-@@ -531,5 +541,6 @@ then
+@@ -531,6 +540,7 @@ then
      CopyDependency PciIo
      CopyDependency PciRootBridgeIo
      CopyDependency PxeBaseCode
 -    CopyDependency ConfigKeywordHandler 
--fi
-\ No newline at end of file
 +    CopyDependency ConfigKeywordHandler
 +    CopyDependency SecureBoot
-+fi
+ fi
+ 
 diff --git a/uefi-sct/SctPkg/Config/Data/Category.ini b/uefi-sct/SctPkg/Config/Data/Category.ini
-index ba7b239f..c717a8b6 100644
+index a62deb74..437fc876 100644
 --- a/uefi-sct/SctPkg/Config/Data/Category.ini
 +++ b/uefi-sct/SctPkg/Config/Data/Category.ini
 @@ -165,6 +165,13 @@ InterfaceGuid = AFF115FB-387B-4C18-8C41-6AFC7F03BB90
@@ -127,10 +127,19 @@ index ba7b239f..c717a8b6 100644
  Revision      = 0x00010000
  CategoryGuid  = CCD15FEC-6F73-4EEC-8395-3E69E4B940BF
 diff --git a/uefi-sct/SctPkg/UEFI/UEFI_SCT.dsc b/uefi-sct/SctPkg/UEFI/UEFI_SCT.dsc
-index 88d7a317..d4943270 100644
+index 339723ab..bd3af0b6 100644
 --- a/uefi-sct/SctPkg/UEFI/UEFI_SCT.dsc
 +++ b/uefi-sct/SctPkg/UEFI/UEFI_SCT.dsc
-@@ -46,8 +46,8 @@
+@@ -3,7 +3,7 @@
+ #  Copyright 2006 - 2017 Unified EFI, Inc.<BR>
+ #  Copyright (c) 2010 - 2018, Intel Corporation. All rights reserved.<BR>
+ #  (C) Copyright 2017 - 2021 Hewlett Packard Enterprise Development LP<BR>
+-#  Copyright (c) 2023, Loongson Technology Corporation Limited. All rights reserved.<BR>
++#  Copyright (c) 2023, Loongson Technology Corporation Limited. All rights reserved.<BR>
+ #
+ #  This program and the accompanying materials
+ #  are licensed and made available under the terms and conditions of the BSD License
+@@ -47,8 +47,8 @@
    BUILD_TARGETS                  = DEBUG|RELEASE
    SKUID_IDENTIFIER               = DEFAULT
    
@@ -141,7 +150,7 @@ index 88d7a317..d4943270 100644
  
  
  ################################################################################
-@@ -60,25 +60,25 @@
+@@ -61,25 +61,25 @@
    0|DEFAULT              # The entry: 0|DEFAULT is reserved and always required.
  
  [BuildOptions]
@@ -181,26 +190,29 @@ index 88d7a317..d4943270 100644
     GCC:*_*_X64_CC_FLAGS     = -D EFIX64 $(GCC_VER_MACRO) -Wno-error 
  #  GCC:*_*_X64_VFRPP_FLAGS  = -D EFIX64 $(GCC_VER_MACRO)
  #  GCC:*_*_X64_APP_FLAGS    = -D EFIX64 $(GCC_VER_MACRO)
-@@ -222,7 +222,9 @@ SctPkg/TestCase/UEFI/EFI/BootServices/ProtocolHandlerServices/BlackBoxTest/Proto
+@@ -235,8 +235,10 @@ SctPkg/TestCase/UEFI/EFI/BootServices/ProtocolHandlerServices/BlackBoxTest/Proto
  SctPkg/TestCase/UEFI/EFI/RuntimeServices/MiscRuntimeServices/BlackBoxTest/MiscRuntimeServicesBBTest.inf
  SctPkg/TestCase/UEFI/EFI/RuntimeServices/TimeServices/BlackBoxTest/TimeServicesBBTest.inf
  SctPkg/TestCase/UEFI/EFI/RuntimeServices/VariableServices/BlackBoxTest/VariableServicesBBTest.inf
+-SctPkg/TestCase/UEFI/EFI/RuntimeServices/TCGMemoryOverwriteRequest/BlackBoxTest/TCGMemoryOverwriteRequestBBTest.inf
 -
++SctPkg/TestCase/UEFI/EFI/RuntimeServices/TCGMemoryOverwriteRequest/BlackBoxTest/TCGMemoryOverwriteRequestBBTest.inf
++SctPkg/TestCase/UEFI/EFI/RuntimeServices/BBSRVariableSizeTest/BlackBoxTest/BBSRVariableSizeBBTest.inf
 +SctPkg/TestCase/UEFI/EFI/RuntimeServices/SecureBoot/BlackBoxTest/SecureBootBBTest.inf
 + 
-+SctPkg/TestCase/UEFI/EFI/RuntimeServices/BBSRVariableSizeTest/BlackBoxTest/BBSRVariableSizeBBTest.inf
  SctPkg/TestCase/UEFI/EFI/Protocol/GraphicsOutput/BlackBoxTest/GraphicsOutputBBTest.inf
  SctPkg/TestCase/UEFI/EFI/Protocol/Bis/BlackBoxTest/BisBBTest.inf
  SctPkg/TestCase/UEFI/EFI/Protocol/BlockIo/BlackBoxTest/BlockIoBBTest.inf
-@@ -288,6 +290,7 @@ SctPkg/TestCase/UEFI/EFI/Protocol/StorageSecurityCommand/BlackBoxTest/StorageSec
+@@ -302,7 +304,7 @@ SctPkg/TestCase/UEFI/EFI/Protocol/StorageSecurityCommand/BlackBoxTest/StorageSec
  SctPkg/TestCase/UEFI/EFI/Protocol/AdapterInfo/BlackBoxTest/AdapterInfoProtocolBBTest.inf
  SctPkg/TestCase/UEFI/EFI/Protocol/TimeStamp/BlackBoxTest/TimeStampProtocolBBTest.inf
  SctPkg/TestCase/UEFI/EFI/Protocol/RandomNumber/BlackBoxTest/RandomNumberBBTest.inf
-+SctPkg/TestCase/UEFI/EFI/Protocol/TCG2Protocol/BlackBoxTest/TCG2ProtocolBBTest.inf
+-SctPkg/TestCase/UEFI/EFI/Protocol/TCG2/BlackBoxTest/TCG2ProtocolBBTest.inf
++SctPkg/TestCase/UEFI/EFI/Protocol/TCG2/BlackBoxTest/TCG2ProtocolBBTest.inf
  
  SctPkg/TestCase/UEFI/EFI/Protocol/Hash2/BlackBoxTest/Hash2BBTest.inf
  SctPkg/TestCase/UEFI/EFI/Protocol/PKCS7Verify/BlackBoxTest/Pkcs7BBTest.inf
-@@ -435,6 +438,11 @@ SctPkg/TestCase/UEFI/EFI/Protocol/PxeBaseCode/BlackBoxTest/Dependency/Config/Con
+@@ -450,6 +452,11 @@ SctPkg/TestCase/UEFI/EFI/Protocol/PxeBaseCode/BlackBoxTest/Dependency/Config/Con
  #
  SctPkg/TestCase/UEFI/EFI/Protocol/ConfigKeywordHandler/BlackBoxTest/Dependency/SampleDriver/DriverSampleDxe.inf
  
@@ -212,7 +224,7 @@ index 88d7a317..d4943270 100644
  #
  # Support Files
  #
-@@ -498,6 +506,6 @@ SctPkg/TestCase/RIVL/Protocol/Http/HttpServiceBinding/HttpServiceBindingENTSTest
+@@ -513,6 +520,6 @@ SctPkg/TestCase/RIVL/Protocol/Http/HttpServiceBinding/HttpServiceBindingENTSTest
  
  [Components.IA32, Components.X64]
  SctPkg/TestCase/UEFI/EFI/Generic/ExeMode/BlackBoxTest/ExeModeBBTest.inf
@@ -222,3 +234,6 @@ index 88d7a317..d4943270 100644
 +
 +[Components.RISCV64]
 +SctPkg/TestCase/UEFI/EFI/Protocol/RiscV/BlackBoxTest/RiscVBootProtocolBBTest.inf
+-- 
+2.34.1
+
